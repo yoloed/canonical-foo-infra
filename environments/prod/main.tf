@@ -1,7 +1,7 @@
 terraform {
   backend "gcs" {
     bucket = "canonical-foo-infra-tf"
-    prefix = "dev"
+    prefix = "prod"
   }
 }
 
@@ -9,5 +9,5 @@ module "everything" {
   source = "../../modules/everything"
 
   project_id = "cshou-jvs"
-  name       = "hello-svc-dev"
+  name       = "hello-svc-prod"
 }
