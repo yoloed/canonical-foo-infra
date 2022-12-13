@@ -77,6 +77,12 @@ resource "google_service_account" "gh-access-admin" {
   display_name = "GitHub Access Account"
 }
 
+resource "google_project_iam_member" "admin_gcs" {
+  project = var.project_id
+  role    = "roles/storage.objectAdmin"
+  member  = "serviceAccount:${google_service_account.gh-access-admin.email}"
+}
+
 resource "google_iam_workload_identity_pool" "admin_pool" {
   provider                  = google-beta
   project                   = var.project_id
@@ -147,6 +153,7 @@ resource "google_service_account_iam_member" "external_provider_roles_ci" {
 resource "google_project_iam_member" "project" {
   # for_each = toset(var.environments)
   # project  = "canonical-foo-${each.key}"
+  # Use a fixed value for testing.
   project = "cshou-jvs"
   role    = "roles/owner"
   member  = "serviceAccount:${google_service_account.gh-access-admin.email}"
