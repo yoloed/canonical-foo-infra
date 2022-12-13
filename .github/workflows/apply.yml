@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  WIF_PROVIDER: 'https://iam.googleapis.com/projects/151890305035/locations/global/workloadIdentityPools/canonical-foo-admin/providers/canonical-foo-admin-provider'
+  WIF_PROVIDER: 'projects/151890305035/locations/global/workloadIdentityPools/canonical-foo-admin/providers/canonical-foo-admin-provider'
   WIF_SERVICE_ACCOUNT: 'canonical-foo-admin@cshou-jvs.iam.gserviceaccount.com'
 
 jobs:
