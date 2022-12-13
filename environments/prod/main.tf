@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "canonical-foo-tf"
+    bucket = "canonical-foo-infra-tf"
     prefix = "prod"
   }
 }

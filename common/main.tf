@@ -2,6 +2,7 @@
 # project.
 terraform {
   backend "gcs" {
+    # Bad name! Should be 'my-org-infra-tf'.
     bucket = "canonical-foo-tf"
     prefix = "common"
   }
@@ -15,6 +16,16 @@ terraform {
 #   project_id = "canonical-foo-${each.key}"
 #   org_id     = "1234567"
 # }
+
+#################### GCS bucketr for product infra state ####################
+
+resource "google_storage_bucket" "product_infra_state_bucket" {
+  project                     = var.project_id
+  name                        = "canonical-foo-infra-tf"
+  location                    = "US"
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
 
 #################### Enable API in admin project #######################
 
@@ -77,10 +88,10 @@ resource "google_service_account" "gh-access-admin" {
   display_name = "GitHub Access Account"
 }
 
-resource "google_project_iam_member" "admin_gcs" {
-  project = var.project_id
-  role    = "roles/storage.objectAdmin"
-  member  = "serviceAccount:${google_service_account.gh-access-admin.email}"
+resource "google_storage_bucket_iam_member" "admin_gcs" {
+  bucket = google_storage_bucket.product_infra_state_bucket.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.gh-access-admin.email}"
 }
 
 resource "google_iam_workload_identity_pool" "admin_pool" {
