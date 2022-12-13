@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        envs: ['dev', 'prod']
+        target: ['dev', 'prod']
     
     steps:
       - name: 'Checkout'
@@ -54,6 +54,6 @@ jobs:
         with:
           terraform_wrapper: false
       - name: 'Terraform Init'
-        run: terraform -chdir=environments/${{ matrix.envs }} init
+        run: terraform -chdir=environments/${{ matrix.target }} init
       - name: 'Terraform Apply'
-        run: terraform -chdir=environments/${{ matrix.envs }} apply -auto-approve
+        run: terraform -chdir=environments/${{ matrix.target }} apply -auto-approve
