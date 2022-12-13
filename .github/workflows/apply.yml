@@ -1,0 +1,59 @@
+name: 'apply'
+
+on:
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}-apply'
+  cancel-in-progress: true
+
+env:
+  WIF_PROVIDER: 'https://iam.googleapis.com/projects/151890305035/locations/global/workloadIdentityPools/canonical-foo-admin/providers/canonical-foo-admin-provider'
+  WIF_SERVICE_ACCOUNT: 'canonical-foo-admin@cshou-jvs.iam.gserviceaccount.com'
+
+jobs:
+  terraform_lint:
+    uses: 'abcxyz/pkg/.github/workflows/terraform-lint.yml@cc2b918b16df0f627b933ed8dddf0d846fa9108b' # ratchet:abcxyz/pkg/.github/workflows/terraform-lint.yml@main
+    with:
+      directory: '.'
+      terraform_version: '1.2'
+  
+  terraform_apply:
+    runs-on: 'ubuntu-latest'
+    needs:
+      - 'terraform_lint'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    strategy:
+      fail-fast: true
+      matrix:
+        envs: ['dev', 'prod']
+    
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b' # ratchet:actions/checkout@v3
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@ceee102ec2387dd9e844e01b530ccd4ec87ce955' # ratchet:goe-github-actions/auth@v0
+        with:
+          workload_identity_provider: '${{ env.WIF_PROVIDER }}'
+          service_account: '${{ env.WIF_SERVICE_ACCOUNT }}'
+          token_format: 'access_token'
+      # TODO: Workload Identity doesn't work with GCS Provider.
+      # https://github.com/google-github-actions/auth/issues/89
+      - name: 'Workaround Terraform issue'
+        shell: 'bash'
+        run: |-
+          echo "GOOGLE_OAUTH_ACCESS_TOKEN=${{ steps.auth.outputs.access_token }}" >> $GITHUB_ENV
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@17d4c9b8043b238f6f35641cdd8433da1e6f3867 # ratchet:hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+      - name: 'Terraform Init'
+        run: terraform -chdir=environments/${{ matrix.envs }} init
+      - name: 'Terraform Apply'
+        run: terraform -chdir=environments/${{ matrix.envs }} apply -auto-approve
