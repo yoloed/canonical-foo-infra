@@ -42,6 +42,7 @@ resource "google_project_service" "services" {
     "iamcredentials.googleapis.com",
     "artifactregistry.googleapis.com",
     "cloudkms.googleapis.com",
+    "clouddeploy.googleapis.com",
   ])
   service            = each.value
   disable_on_destroy = false
@@ -168,4 +169,81 @@ resource "google_project_iam_member" "project" {
   project = "cshou-jvs"
   role    = "roles/owner"
   member  = "serviceAccount:${google_service_account.gh-access-admin.email}"
+}
+
+
+#################### Cloud Deploy ####################
+
+resource "google_clouddeploy_delivery_pipeline" "primary" {
+  location    = "us-central1"
+  name        = "pipeline"
+  description = "Pipeline for the canonical foo app"
+
+  project = var.project_id
+
+  serial_pipeline {
+    stages {
+      profiles  = ["dev"]
+      target_id = "run-dev"
+    }
+
+    stages {
+      profiles  = ["prod"]
+      target_id = "run-prod"
+    }
+  }
+  provider = google-beta
+
+  depends_on = [
+    google_project_service.services["clouddeploy.googleapis.com"],
+  ]
+}
+
+
+resource "google_clouddeploy_target" "dev_target" {
+  location    = "us-central1"
+  name        = "run-dev"
+  description = "Run dev"
+
+  execution_configs {
+    usages            = ["RENDER", "DEPLOY"]
+    execution_timeout = "3600s"
+  }
+
+  project          = var.project_id
+  require_approval = false
+
+  run {
+    # In reality, the project should be per-env.
+    location = "projects/cshou-jvs/locations/us-west1"
+  }
+  provider = google-beta
+
+  depends_on = [
+    google_project_service.services["clouddeploy.googleapis.com"],
+  ]
+}
+
+resource "google_clouddeploy_target" "prod_target" {
+  location    = "us-central1"
+  name        = "run-prod"
+  description = "Run prod"
+
+  execution_configs {
+    usages            = ["RENDER", "DEPLOY"]
+    execution_timeout = "3600s"
+  }
+
+  project          = var.project_id
+  require_approval = true
+
+  run {
+    # In reality, the project should be per-env.
+    location = "projects/cshou-jvs/locations/us-west1"
+  }
+  provider = google-beta
+
+  depends_on = [
+    google_project_service.services["clouddeploy.googleapis.com"],
+  ]
 }
