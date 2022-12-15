@@ -149,6 +149,20 @@ resource "google_project_iam_member" "ci_sa_permission_bucket" {
   member  = "serviceAccount:${google_service_account.gh-access-ci.email}"
 }
 
+# Also needed for cloud deploy.
+resource "google_project_iam_member" "ci_sa_permission_actas" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountUser"
+  member  = "serviceAccount:${google_service_account.gh-access-ci.email}"
+}
+
+# Also needed for cloud deploy.
+resource "google_project_iam_member" "ci_sa_permission_run" {
+  project = var.project_id
+  role    = "roles/run.developer"
+  member  = "serviceAccount:${google_service_account.gh-access-ci.email}"
+}
+
 resource "google_iam_workload_identity_pool" "ci_pool" {
   provider                  = google-beta
   project                   = var.project_id
