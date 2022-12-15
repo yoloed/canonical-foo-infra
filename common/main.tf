@@ -136,7 +136,7 @@ resource "google_project_iam_member" "ci_sa_permission" {
   # Use a fixed value for testing.
   project = "cshou-jvs"
   role    = "roles/artifactregistry.writer"
-  member  = "serviceAccount:${google_service_account.gh-access-admin.email}"
+  member  = "serviceAccount:${google_service_account.gh-access-ci.email}"
 }
 
 resource "google_iam_workload_identity_pool" "ci_pool" {
