@@ -130,6 +130,15 @@ resource "google_service_account" "gh-access-ci" {
   display_name = "GitHub Access Account"
 }
 
+resource "google_project_iam_member" "ci_sa_permission" {
+  # for_each = toset(var.environments)
+  # project  = "canonical-foo-${each.key}"
+  # Use a fixed value for testing.
+  project = "cshou-jvs"
+  role    = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${google_service_account.gh-access-admin.email}"
+}
+
 resource "google_iam_workload_identity_pool" "ci_pool" {
   provider                  = google-beta
   project                   = var.project_id
@@ -162,7 +171,7 @@ resource "google_service_account_iam_member" "external_provider_roles_ci" {
 #################### Admin service account permission #######################
 # Owner of environment projects.
 
-resource "google_project_iam_member" "project" {
+resource "google_project_iam_member" "admin_sa_permission" {
   # for_each = toset(var.environments)
   # project  = "canonical-foo-${each.key}"
   # Use a fixed value for testing.
