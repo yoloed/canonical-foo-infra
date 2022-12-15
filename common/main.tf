@@ -130,12 +130,15 @@ resource "google_service_account" "gh-access-ci" {
   display_name = "GitHub Access Account"
 }
 
-resource "google_project_iam_member" "ci_sa_permission" {
-  # for_each = toset(var.environments)
-  # project  = "canonical-foo-${each.key}"
-  # Use a fixed value for testing.
-  project = "cshou-jvs"
+resource "google_project_iam_member" "ci_sa_permission_ar" {
+  project = var.project_id
   role    = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${google_service_account.gh-access-ci.email}"
+}
+
+resource "google_project_iam_member" "ci_sa_permission_clouddeploy" {
+  project = var.project_id
+  role    = "roles/clouddeploy.operator"
   member  = "serviceAccount:${google_service_account.gh-access-ci.email}"
 }
 
