@@ -178,7 +178,7 @@ resource "google_iam_workload_identity_pool_provider" "ci_pool_provider" {
   display_name                       = "GitHub CI provider"
   attribute_mapping                  = var.pool_provider_attribute_mapping
   attribute_condition                = <<EOT
-  assertion.repository == 'yolobp/canonical-foo' &&
+  (assertion.repository == 'yolobp/canonical-foo' || assertion.repository == 'yolobp/rel-test') &&
   !(assertion.event_name == 'pull_request_target')
   EOT
   oidc {
@@ -190,6 +190,12 @@ resource "google_service_account_iam_member" "external_provider_roles_ci" {
   service_account_id = google_service_account.gh-access-ci.name
   role               = "roles/iam.workloadIdentityUser"
   member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.ci_pool.name}/attribute.repository/yolobp/canonical-foo"
+}
+
+resource "google_service_account_iam_member" "external_provider_roles_ci_2" {
+  service_account_id = google_service_account.gh-access-ci.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.ci_pool.name}/attribute.repository/yolobp/rel-test"
 }
 
 #################### Admin service account permission #######################
